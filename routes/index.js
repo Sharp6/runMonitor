@@ -5,7 +5,7 @@ var router = express.Router();
 var fs = require('fs');
 var rkClient = require('../rkClient');
 var request = require('request');
-
+var moment = require('moment');
 // UGLY global
 var config_file = "./config.json";
 
@@ -14,7 +14,9 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.get('/rkLogin', function(req,res) {
+router.get('/rkLogin', [attemptConfigLoad,doLogin]);
+
+function attemptConfigLoad(req,res,next) {
   var config;
   try {
     config = JSON.parse(fs.readFileSync(config_file, 'utf-8'));
@@ -24,17 +26,24 @@ router.get('/rkLogin', function(req,res) {
   }
 
   if(config) {
-    rkClient.client.profile(function(err,reply){
-      if(err) {
-        res.json(err);
-        return false;
-      }
-      res.json("Already logged in as: " + reply.name);
-      console.log(reply);
-    });
+    confirmLogin(req,res,next);
   } else {
-      
+    next();
+  }
+}
 
+function confirmLogin(req,res) {
+  rkClient.client.profile(function(err,reply){
+    if(err) {
+      res.json(err);
+      return false;
+    }
+    res.json("You are logged in as: " + reply.name);
+    console.log(reply);
+  });
+} 
+      
+function doLogin(req,res,next) {
   var request_params = {
     client_id: rkClient.options.client_id,
     response_type: "code",
@@ -53,21 +62,22 @@ router.get('/rkLogin', function(req,res) {
   };
 
   request(request_details, function(err, response, body) {
-      if(err) {
-        res.send(err);
-      } else {
-        res.send(body);
-      }
+    if(err) {
+      res.send(err);
+    } else {
+     res.send(body);
+    }
   });
-  }
-});
+}
 
+router.get('/setCode', [setToken,confirmLogin]);
 
-router.get('/setCode', function(req,res) {
+function setToken(req,res,next) {
   rkClient.client.getNewToken(req.query.code, function(err, access_token) {
     if(err) { 
       console.log("Error getting access token.");
       console.log(err); 
+      res.json(err);
       return false; 
     }
     rkClient.client.access_token = access_token;
@@ -75,30 +85,44 @@ router.get('/setCode', function(req,res) {
     fs.writeFile(config_file, JSON.stringify({'access_token':access_token}), function(err){
       if(err){
         console.log(err);
+        res.json(err);
+        return false;
       }
     });
 
-    rkClient.client.profile(function(err,reply){
-      if(err){ 
-        console.log("Error getting profile.");
-        console.log(err); 
-        return false;
-      } 
-      console.log(reply);
-      res.json("Now logged in as " + reply.name);
-    });
-  });    
-});
+    next();
+  });
+}  
 
+router.get('/activities', returnActivities);
 
-router.get('/activities', function(req,res) {
+function returnActivities(req,res) {
   rkClient.client.fitnessActivities(function(err,reply) {
     if(err) {
       res.json(err);
       return false;
     }
-    res.json(reply.items[0]);
+    res.json(reply.items);
   });
-});
+}
+
+router.get('/check', performCheck);
+
+function performCheck(req,res) {
+  rkClient.client.fitnessActivities(function(err,reply) {
+    if(err) {
+      res.json(err);
+      return false;
+    }
+    var result = calculateCheck(reply.items[0].start_time);
+    res.json(result);
+  });
+
+}
+
+function calculateCheck(lastItem) {
+  var lastTraining = moment(new Date(lastItem));
+  return moment().diff(lastTraining, 'days');  
+}
 
 module.exports = router;
