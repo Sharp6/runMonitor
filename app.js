@@ -16,6 +16,20 @@ if(app.get('env') === "development") {
   require('dotenv').load();
 }
 
+var redisUrl = process.env.REDIS_URL || null;
+var redis = require('redis');
+var redisClient;
+
+if(redisUrl) {
+  redisClient = redis.createClient(redisUrl);
+} else {
+  redisClient = redis.createClient();
+}
+
+redisClient.on('connect', function() {
+    console.log('Redis connected');
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hjs');
