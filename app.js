@@ -8,7 +8,13 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
+//var mqttPublisher = require('./mqttPublisher');
+
 var app = express();
+
+if(app.get('env') === "development") {
+  require('dotenv').load();
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

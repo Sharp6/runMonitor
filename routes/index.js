@@ -1,38 +1,31 @@
 var express = require('express');
 var router = express.Router();
 
-
-var fs = require('fs');
 var rkClient = require('../rkClient');
 var request = require('request');
 var moment = require('moment');
-// UGLY global
-var config_file = "./config.json";
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.get('/rkLogin', [attemptConfigLoad,doLogin]);
+router.get('/rkLogin', login);
 
-function attemptConfigLoad(req,res,next) {
-  var config;
-  try {
-    config = JSON.parse(fs.readFileSync(config_file, 'utf-8'));
-    rkClient.client.access_token = config.access_token;
-  } catch(err) {
+function login(req,res) {
+  rkClient.loadToken().then(function() {
+    confirmLogin(req,res);
+  }, function() {
+    doLogin(req,res);
+  })
+  .catch(function(err) {
     console.log(err);
-  }
-
-  if(config) {
-    confirmLogin(req,res,next);
-  } else {
-    next();
-  }
+    res.json(err);
+  });
 }
 
 function confirmLogin(req,res) {
+  console.log("Confirming");
   rkClient.client.profile(function(err,reply){
     if(err) {
       res.json(err);
@@ -73,28 +66,38 @@ function doLogin(req,res,next) {
 router.get('/setCode', [setToken,confirmLogin]);
 
 function setToken(req,res,next) {
-  rkClient.client.getNewToken(req.query.code, function(err, access_token) {
-    if(err) { 
-      console.log("Error getting access token.");
-      console.log(err); 
+  rkClient.registerToken(req.query.code)
+    .then(function() {
+      next();
+    })
+    .catch(function(err) {
       res.json(err);
-      return false; 
-    }
-    rkClient.client.access_token = access_token;
-
-    fs.writeFile(config_file, JSON.stringify({'access_token':access_token}), function(err){
-      if(err){
-        console.log(err);
-        res.json(err);
-        return false;
-      }
     });
-
-    next();
-  });
 }  
 
-router.get('/activities', returnActivities);
+
+
+
+
+
+router.get('/activities', [attemptTokenLoad,returnActivities]);
+
+function attemptTokenLoad(req,res,next) {
+  rkClient.loadToken()
+    .then(function() {
+      next();
+    }, function(err) {
+      console.log(err);
+      tokenLoadFailed(req,res);
+    })
+    .catch(function(err) {
+      tokenLoadFailed(req,res);
+    });
+}
+
+function tokenLoadFailed(req,res) {
+  res.json("NO_LOGIN");
+}
 
 function returnActivities(req,res) {
   rkClient.client.fitnessActivities(function(err,reply) {
@@ -106,7 +109,7 @@ function returnActivities(req,res) {
   });
 }
 
-router.get('/check', performCheck);
+router.get('/check', [attemptTokenLoad,performCheck]);
 
 function performCheck(req,res) {
   rkClient.client.fitnessActivities(function(err,reply) {
