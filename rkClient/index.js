@@ -1,5 +1,3 @@
-var fs = require('fs');
-
 var options = exports.options = {
  client_id: process.env.CLIENTID,
  client_secret: process.env.CLIENTSECRET,
@@ -7,11 +5,18 @@ var options = exports.options = {
  access_token_url: "https://runkeeper.com/apps/token",
  redirect_uri: process.env.REDIRECTURI,
  //access_token: "",
- api_domain: "api.runkeeper.com",
- config_file: "./config.json" 
+ api_domain: "api.runkeeper.com"
 };
 
 var runkeeper = require('runkeeper-js');
+
+var redis = require('redis');
+var redisClient = redis.createClient(process.env.REDIS_PORT, process.env.REDIS_URL, {no_ready_check: true});
+redisClient.auth(process.env.REDIS_PASSWD, function (err) {
+    if (err) {
+      console.log(err);
+    }
+});
 
 var client = exports.client = new runkeeper.HealthGraph(options);
 
@@ -38,26 +43,29 @@ function setToken(code) {
 function persistToken(token) {
 	console.log("Staring to persist");
 	return new Promise(function(resolve,reject) {
-		fs.writeFile(options.config_file, JSON.stringify({'access_token':token}), function(err){
-	  	if(err){
-	  		console.log("Not persisting");
-	    	reject(err);
-	    } else {
-	    	console.log("Persisted token.");
-	    	resolve(token);
-	    }
-		});	
+		redisClient.set("access_token", token, function(err,reply) {
+			if(err) {
+				reject(err);
+			} else {
+				resolve(reply);
+			}
+		});
 	});
 }
 
 exports.loadToken = function() {
 	return new Promise(function(resolve,reject) {
-		try {
-	    config = JSON.parse(fs.readFileSync(options.config_file, 'utf-8'));
-	    client.access_token = config.access_token;
-	    resolve(client.access_token);
-	  } catch(err) {
-	    reject(err);
-	  }
+		redisClient.get("access_token", function(err,reply) {
+			if(err) {
+				reject(err);
+			} else {
+				if(reply) {
+					client.access_token = reply;
+					resolve(reply);	
+				} else {
+					reject("No access token");
+				}
+			}
+		});
 	});
 }

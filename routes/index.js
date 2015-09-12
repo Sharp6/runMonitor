@@ -37,6 +37,9 @@ function confirmLogin(req,res) {
 } 
       
 function doLogin(req,res,next) {
+
+  console.log("This is my rkClient.options: " + rkClient.options.client_id);
+
   var request_params = {
     client_id: rkClient.options.client_id,
     response_type: "code",
@@ -55,6 +58,7 @@ function doLogin(req,res,next) {
   };
 
   request(request_details, function(err, response, body) {
+    console.log("Got here." + request_details.uri);
     if(err) {
       res.send(err);
     } else {
