@@ -131,7 +131,7 @@ function performCheckNoJson(req,res) {
       return false;
     }
     var result = calculateCheck(reply.items[0].start_time);
-    res.end(result);
+    res.end(result.toString());
   }); 
 }
 
