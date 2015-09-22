@@ -131,7 +131,8 @@ function performCheckNoJson(req,res) {
       return false;
     }
     var result = calculateCheck(reply.items[0].start_time);
-    res.end(result.toString());
+    res.send(result.toString() + "\r");
+    res.end();
   }); 
 }
 
