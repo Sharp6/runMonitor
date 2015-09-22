@@ -81,9 +81,6 @@ function setToken(req,res,next) {
 
 
 
-
-
-
 router.get('/activities', [attemptTokenLoad,returnActivities]);
 
 function attemptTokenLoad(req,res,next) {
@@ -124,7 +121,18 @@ function performCheck(req,res) {
     var result = calculateCheck(reply.items[0].start_time);
     res.json(result);
   });
+}
 
+router.get('/checkRaw', [attemptTokenLoad,performCheckNoJson]);
+function performCheckNoJson(req,res) {
+  rkClient.client.fitnessActivities(function(err,reply) {
+    if(err) {
+      res.json(err);
+      return false;
+    }
+    var result = calculateCheck(reply.items[0].start_time);
+    res.end(result);
+  }); 
 }
 
 function calculateCheck(lastItem) {
