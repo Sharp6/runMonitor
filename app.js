@@ -12,7 +12,6 @@ var app = express();
 if(app.get('env') === "development") {
   require('dotenv').load();
   console.log("Loading dotEnv.");
-  console.log("Client id: " + process.env.CLIENTID);
 }
 
 var routes = require('./routes/index');
