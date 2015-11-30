@@ -38,7 +38,8 @@ exports.performColorCheck = function(req,res) {
 
 function calculateCheck(lastItem) {
   var lastTraining = moment(new Date(lastItem));
-  return moment().diff(lastTraining, 'days');  
+  var now = moment();
+  return now.diff(lastTraining, 'days');  
 }
 
 function convertDaysToColor(days) {
