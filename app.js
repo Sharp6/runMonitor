@@ -18,7 +18,7 @@ var allowCrossDomain = function(req, res, next) {
 var app = express();
 
 if(app.get('env') === "development") {
-  require('dotenv').load();
+  require('dotenv').load({path: '/home/pi/apps/runMonitor/.env'});
   console.log("Loading dotEnv.");
   console.log("Client id: " + process.env.CLIENTID);
 }
