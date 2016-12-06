@@ -25,8 +25,8 @@ var confirmLogin = exports.confirmLogin = function(req,res) {
     }
     res.json("The RunKeeper access token is set for " + reply.name);
   });
-} 
-      
+}
+
 function doLogin(req,res,next) {
   var request_params = {
     client_id: rkClient.options.client_id,
@@ -57,6 +57,8 @@ function buildUrlBodyString(params) {
   return body_string;
 }
 
+
+// Middleware -----------------------------------------------------------------
 var setToken = exports.setToken = function(req,res,next) {
   rkClient.getTokenFromRunkeeper(req.query.code)
   	.then(rkClient.setToken)
@@ -87,4 +89,3 @@ var attemptTokenLoad = exports.attemptTokenLoad = function(req,res,next) {
 function tokenLoadFailed(req,res) {
   res.json("NO_LOGIN");
 }
-

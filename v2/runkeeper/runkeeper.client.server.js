@@ -1,5 +1,5 @@
-var RunkeeperClient = function(runkeeper, rkredis) {
-	var options = {
+var RunkeeperClient = function(runkeeper) {
+	this.options = {
 		client_id: process.env.CLIENTID,
 		client_secret: process.env.CLIENTSECRET,
 		auth_url: "https://runkeeper.com/apps/authorize",
@@ -8,29 +8,13 @@ var RunkeeperClient = function(runkeeper, rkredis) {
 		api_domain: "api.runkeeper.com"
 	};
 
-	var client = new runkeeper.HealthGraph(options);
+	this.client = new runkeeper.HealthGraph(this.options);
 
-	this.getTokenFromRunkeeper = function(authorizationCode) {
-		return new Promise(function(resolve, reject) {
-			console.log("RKCLIENT: Getting access token from RunKeeper.");
-			client.getNewToken(authorizationCode, function(err, accessToken) {
-				if(err) {
-					console.log("RKCLIENT: Error getting access token: " + err);
-					reject(err);
-				} else {
-					resolve(accessToken);
-				}
-			});
-		});
-	};
 };
 
 module.exports = RunkeeperClient;
 
 /*
-
-
-
 var redis = require('redis');
 var redisClient = redis.createClient(process.env.REDIS_PORT, process.env.REDIS_URL, {no_ready_check: true});
 redisClient.auth(process.env.REDIS_PASSWD, function (err) {
@@ -80,7 +64,7 @@ exports.loadToken = function() {
 			} else {
 				if(reply) {
 					client.access_token = reply;
-					resolve(reply);	
+					resolve(reply);
 				} else {
 					reject("No access token");
 				}

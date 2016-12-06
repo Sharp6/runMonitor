@@ -30,6 +30,7 @@ var RunkeeperRedis = function(redis) {
 					reject(err);
 				} else {
 					if(reply) {
+						console.log("Got token", reply);
 						resolve(reply);
 					} else {
 						reject("No access token could be loaded.");
