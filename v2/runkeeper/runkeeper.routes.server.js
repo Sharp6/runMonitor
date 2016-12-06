@@ -12,7 +12,7 @@ var RunkeeperRoutes = function(router, rkController) {
   //router.get('/setCode', [rkController.getToken,rkController.confirmLogin]);
   this.router.get('/setCode', [rkController.setClient, rkController.getToken, rkController.persistToken, rkController.confirmLogin]);
 
-  this.router.get('/activities', [rkController.setClient, rkController.loadToken, rkController.getActivities]);
+  this.router.get('/activities', [rkController.setClient, rkController.loadToken, rkController.returnActivities]);
 
   //var runkeeperActionsController = require('../controllers/runkeeperActions.controller.server');
   // Action routes

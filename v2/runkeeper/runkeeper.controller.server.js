@@ -45,7 +45,7 @@ var RunkeeperController = function(rkClient, rkRedis) {
     });
   };
 
-  this.getActivities = function(req,res) {
+  this.returnActivities = function(req,res) {
     console.log("Getting activities");
     req.client.fitnessActivities(function(err,reply) {
       if(err) {
@@ -55,7 +55,32 @@ var RunkeeperController = function(rkClient, rkRedis) {
       console.log("Got reply", reply);
       res.json(reply.items);
     });
-  }
+  };
+
+  this.getActivities = function() {
+    return new Promise(function(resolve,reject) {
+      console.log(rkClient);
+      rkClient.client.fitnessActivities(function(err,reply) {
+        if(err) {
+          return reject(err);
+        }
+        resolve(reply);
+      });
+    });
+  };
+
+  // SOOOOOOO ugly, refactor please!
+  this.get200Activities = function() {
+    return new Promise(function(resolve,reject) {
+      console.log(rkClient);
+      rkClient.client.apiCall("GET", undefined, "/fitnessActivities?page=0&pageSize=200", function(err,reply) {
+        if(err) {
+          return reject(err);
+        }
+        resolve(reply);
+      });
+    });
+  };
 
   // Middleware -----------------------------------------------------------------
   this.getToken = function(req,res,next) {
