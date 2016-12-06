@@ -23,9 +23,9 @@ exports.getTokenFromRunkeeper = function(authorizationCode) {
 	return new Promise(function(resolve, reject) {
 		console.log("Getting access token from RunKeeper.");
 		client.getNewToken(authorizationCode, function(err, accessToken) {
-	    if(err) { 	    	
+	    if(err) {
 	      console.log("Error getting access token: " + err);
-	      reject(err); 
+	      reject(err);
 	    } else {
 	    	resolve(accessToken);
 	    }

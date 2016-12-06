@@ -67,7 +67,7 @@ var setToken = exports.setToken = function(req,res,next) {
     .catch(function(err) {
       res.json(err);
     });
-}  
+};
 
 var attemptTokenLoad = exports.attemptTokenLoad = function(req,res,next) {
   runkeeperDA.loadToken()

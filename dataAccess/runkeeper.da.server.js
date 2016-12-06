@@ -34,4 +34,4 @@ exports.loadToken = function() {
 			}
 		});
 	});
-}
+};
